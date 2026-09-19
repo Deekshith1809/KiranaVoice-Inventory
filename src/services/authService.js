@@ -1,30 +1,9 @@
-const API_BASE_URL =  'https://kiranavoice-inventory.onrender.com';
-
-function getAuthHeader() {
-  const token = localStorage.getItem('auth_token');
-  return token ? { 'Authorization': `Bearer ${token}` } : {};
-}
+import { buildApiUrl, safeApiFetch } from './apiConfig';
 
 async function authRequest(endpoint, options = {}) {
+  const url = buildApiUrl(`/auth${endpoint}`);
   try {
-    const headers = {
-      'Content-Type': 'application/json',
-      ...getAuthHeader(),
-      ...options.headers
-    };
-
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      ...options,
-      headers
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.detail || data.message || 'Authentication failed');
-    }
-
-    return data;
+    return await safeApiFetch(url, options);
   } catch (err) {
     console.warn(`[authService] Error on ${endpoint}:`, err.message);
     throw err;

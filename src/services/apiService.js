@@ -1,47 +1,9 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-
-function getAuthHeader() {
-  const token = localStorage.getItem('auth_token');
-
-  return token
-    ? { Authorization: `Bearer ${token}` }
-    : {};
-}
+import { buildApiUrl, safeApiFetch } from './apiConfig';
 
 async function request(endpoint, options = {}) {
+  const url = buildApiUrl(endpoint);
   try {
-    const headers = {
-      'Content-Type': 'application/json',
-      ...getAuthHeader(),
-      ...(options.headers || {})
-    };
-
-    const response = await fetch(`${API_BASE_URL}/api${endpoint}`, {
-      ...options,
-      headers
-    });
-
-    const text = await response.text();
-
-    let data = {};
-
-    try {
-      data = text ? JSON.parse(text) : {};
-    } catch {
-      data = {
-        message: text
-      };
-    }
-
-    if (!response.ok) {
-      throw new Error(
-        data.detail ||
-        data.message ||
-        `API Request Failed (${response.status})`
-      );
-    }
-
-    return data;
+    return await safeApiFetch(url, options);
   } catch (err) {
     console.warn(
       `[apiService] Error on ${endpoint}:`,
