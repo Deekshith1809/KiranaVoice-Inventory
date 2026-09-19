@@ -1,0 +1,304 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+/* Default Dark Mode (Pure Obsidian Black) */
+:root, [data-theme='dark'] {
+  --bg-primary: #000000;
+  --bg-secondary: #09090b;
+  --bg-card: rgba(18, 18, 26, 0.9);
+  --bg-card-hover: rgba(30, 30, 42, 0.95);
+  --border-card: rgba(255, 255, 255, 0.12);
+  --border-glow: rgba(99, 102, 241, 0.4);
+
+  --text-primary: #ffffff;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
+
+  --accent-primary: #6366f1;
+  --accent-primary-hover: #4f46e5;
+  --accent-secondary: #06b6d4;
+  --accent-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+  --mic-gradient: linear-gradient(135deg, #ef4444 0%, #f97316 50%, #eab308 100%);
+
+  --status-in-stock: #10b981;
+  --status-in-stock-bg: rgba(16, 185, 129, 0.2);
+  --status-low-stock: #f59e0b;
+  --status-low-stock-bg: rgba(245, 158, 11, 0.2);
+  --status-out-stock: #ef4444;
+  --status-out-stock-bg: rgba(239, 68, 68, 0.2);
+
+  --font-family: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+
+  --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --shadow-glow: 0 0 25px rgba(99, 102, 241, 0.35);
+  --shadow-mic: 0 0 35px rgba(239, 68, 68, 0.5);
+
+  --glass-backdrop: blur(14px);
+}
+
+/* Premium High-Contrast Light Mode */
+[data-theme='light'] {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f1f5f9;
+  --border-card: rgba(226, 232, 240, 0.9);
+  --border-glow: rgba(99, 102, 241, 0.5);
+
+  --text-primary: #020617;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+
+  --status-in-stock: #059669;
+  --status-in-stock-bg: #d1fae5;
+  --status-low-stock: #d97706;
+  --status-low-stock-bg: #fef3c7;
+  --status-out-stock: #dc2626;
+  --status-out-stock-bg: #fee2e2;
+
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.05);
+  --shadow-glow: 0 8px 25px rgba(99, 102, 241, 0.15);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  line-height: 1.5;
+  overflow-x: hidden;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* Dark mode ambient glow background */
+[data-theme='dark'] body {
+  background-image: 
+    radial-gradient(circle at 10% 10%, rgba(99, 102, 241, 0.18) 0%, transparent 40%),
+    radial-gradient(circle at 90% 90%, rgba(236, 72, 153, 0.15) 0%, transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(6, 182, 212, 0.08) 0%, transparent 50%);
+  background-attachment: fixed;
+}
+
+/* Light mode crisp clean background */
+[data-theme='light'] body {
+  background-image: 
+    radial-gradient(circle at 10% 10%, rgba(99, 102, 241, 0.06) 0%, transparent 40%),
+    radial-gradient(circle at 90% 90%, rgba(14, 165, 233, 0.05) 0%, transparent 40%);
+  background-attachment: fixed;
+}
+
+button {
+  font-family: var(--font-family);
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
+input, select, textarea {
+  font-family: var(--font-family);
+  outline: none;
+}
+
+/* -------------------------------------------------------------
+   LIGHT MODE SPECIFIC OVERRIDES FOR MAXIMUM ATTRACTIVENESS & READABILITY
+   ------------------------------------------------------------- */
+
+[data-theme='light'] .app-header {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+}
+
+[data-theme='light'] .store-title {
+  color: #020617 !important;
+}
+
+[data-theme='light'] .store-subtitle {
+  color: #64748b !important;
+}
+
+[data-theme='light'] .lang-switcher {
+  background: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme='light'] .main-navigation {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-top: 1px solid #e2e8f0 !important;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.03);
+}
+
+[data-theme='light'] .nav-item {
+  color: #64748b;
+}
+
+[data-theme='light'] .nav-item.active {
+  color: #4f46e5;
+  background: #e0e7ff;
+}
+
+[data-theme='light'] .voice-hero-banner {
+  background: linear-gradient(135deg, #ffffff 0%, #e0e7ff 100%) !important;
+  border: 1px solid #c7d2fe !important;
+  box-shadow: 0 10px 30px rgba(99, 102, 241, 0.12) !important;
+}
+
+[data-theme='light'] .hero-content h2 {
+  color: #0f172a !important;
+}
+
+[data-theme='light'] .hero-content p {
+  color: #475569 !important;
+}
+
+[data-theme='light'] .hero-sample {
+  background: #ffffff !important;
+  color: #334155 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+[data-theme='light'] .hero-sample strong {
+  color: #0284c7 !important;
+}
+
+[data-theme='light'] .kpi-card, 
+[data-theme='light'] .table-wrapper, 
+[data-theme='light'] .dashboard-section,
+[data-theme='light'] .settings-card,
+[data-theme='light'] .customer-card,
+[data-theme='light'] .review-card,
+[data-theme='light'] .modal-content,
+[data-theme='light'] .capture-card,
+[data-theme='light'] .barcode-card,
+[data-theme='light'] .alert-card {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #020617 !important;
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.06) !important;
+}
+
+[data-theme='light'] .kpi-value, 
+[data-theme='light'] .qty-number,
+[data-theme='light'] .box-count,
+[data-theme='light'] .entity-value,
+[data-theme='light'] .hero-content h2, 
+[data-theme='light'] .section-header h3,
+[data-theme='light'] .prod-name,
+[data-theme='light'] .cust-info h4,
+[data-theme='light'] .view-header h2,
+[data-theme='light'] .modal-header h2,
+[data-theme='light'] .khata-header h2,
+[data-theme='light'] .inventory-header h2,
+[data-theme='light'] .item-name,
+[data-theme='light'] .cust-name,
+[data-theme='light'] .date-main,
+[data-theme='light'] .prod-title {
+  color: #020617 !important;
+}
+
+[data-theme='light'] .unit-label,
+[data-theme='light'] .reorder-info,
+[data-theme='light'] .prod-cat,
+[data-theme='light'] .feed-time,
+[data-theme='light'] .time-sub,
+[data-theme='light'] .kpi-title,
+[data-theme='light'] .kpi-footer {
+  color: #64748b !important;
+}
+
+[data-theme='light'] input, 
+[data-theme='light'] select {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #020617 !important;
+}
+
+[data-theme='light'] select option {
+  background: #ffffff;
+  color: #020617;
+}
+
+[data-theme='light'] .feed-item,
+[data-theme='light'] .overdue-card,
+[data-theme='light'] .stock-info-row,
+[data-theme='light'] .setting-row,
+[data-theme='light'] .radio-card,
+[data-theme='light'] .transcript-box,
+[data-theme='light'] .khata-extracted-grid {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #020617 !important;
+}
+
+[data-theme='light'] .feed-product,
+[data-theme='light'] .setting-row label,
+[data-theme='light'] .lang-name {
+  color: #0f172a !important;
+}
+
+[data-theme='light'] .inventory-table th,
+[data-theme='light'] .tx-table th,
+[data-theme='light'] .invoice-table th {
+  background: #f1f5f9 !important;
+  color: #475569 !important;
+}
+
+[data-theme='light'] .inventory-table td,
+[data-theme='light'] .tx-table td,
+[data-theme='light'] .invoice-table td {
+  border-bottom-color: #f1f5f9 !important;
+  color: #1e293b !important;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--text-muted);
+  border-radius: var(--radius-full);
+}
+
+/* Animations */
+@keyframes pulseGlow {
+  0% { transform: scale(1); box-shadow: 0 0 20px rgba(239, 68, 68, 0.4); }
+  50% { transform: scale(1.05); box-shadow: 0 0 45px rgba(239, 68, 68, 0.8); }
+  100% { transform: scale(1); box-shadow: 0 0 20px rgba(239, 68, 68, 0.4); }
+}
+
+@keyframes waveBar {
+  0%, 100% { height: 8px; }
+  50% { height: 28px; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.25s ease-in-out forwards;
+}
