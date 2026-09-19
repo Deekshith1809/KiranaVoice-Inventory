@@ -7,15 +7,16 @@ import {
   IndianRupee, 
   Mic, 
   Plus, 
-  History,
+  ChevronRight,
   ArrowUpRight,
-  ArrowDownLeft,
-  ChevronRight
+  ArrowDownLeft
 } from 'lucide-react';
 import { useInventory } from '../context/InventoryContext';
+import { useTranslation } from '../services/i18n';
 
 export const DashboardView = ({ onOpenVoice, onOpenAddProduct, onNavigate }) => {
   const { products, transactions } = useInventory();
+  const { t } = useTranslation();
 
   // Metrics
   const totalProducts = products.length;
@@ -33,19 +34,19 @@ export const DashboardView = ({ onOpenVoice, onOpenAddProduct, onNavigate }) => 
         <div className="hero-content">
           <div className="hero-tag">
             <Mic size={14} />
-            <span>Voice First Inventory</span>
+            <span>{t('voiceFirstTag')}</span>
           </div>
-          <h2>Manage Inventory by Speaking</h2>
-          <p>Tap microphone to add, remove, or query stock in English, Telugu, or Hindi.</p>
+          <h2>{t('speakInstruction')}</h2>
+          <p>{t('listeningPrompt')}</p>
           <div className="hero-sample">
-            <span>Try saying:</span> <strong>"Rice 20 bags vachayi"</strong> or <strong>"Add 10 kg Sugar"</strong>
+            <span>{t('trySaying')}</span> <strong>"Rice 20 bags vachayi"</strong> or <strong>"Add 10 kg Sugar"</strong>
           </div>
         </div>
 
         <button className="hero-mic-trigger" onClick={onOpenVoice}>
           <div className="mic-outer-ring"></div>
           <Mic size={32} />
-          <span>Speak to Manage</span>
+          <span>{t('speakStock')}</span>
         </button>
       </div>
 
@@ -53,57 +54,57 @@ export const DashboardView = ({ onOpenVoice, onOpenAddProduct, onNavigate }) => 
       <div className="kpi-grid">
         <div className="kpi-card">
           <div className="kpi-header">
-            <span className="kpi-title">Total Products</span>
+            <span className="kpi-title">{t('totalProducts')}</span>
             <div className="kpi-icon-wrapper indigo">
               <Package size={18} />
             </div>
           </div>
           <div className="kpi-value">{totalProducts}</div>
-          <div className="kpi-footer">Active catalog items</div>
+          <div className="kpi-footer">{t('activeCatalogItems')}</div>
         </div>
 
         <div className="kpi-card">
           <div className="kpi-header">
-            <span className="kpi-title">Total Stock Count</span>
+            <span className="kpi-title">{t('totalStockCount')}</span>
             <div className="kpi-icon-wrapper cyan">
               <TrendingUp size={18} />
             </div>
           </div>
           <div className="kpi-value">{totalStockItems.toLocaleString()}</div>
-          <div className="kpi-footer">Across all trade units</div>
+          <div className="kpi-footer">{t('acrossTradeUnits')}</div>
         </div>
 
         <div className="kpi-card clickable" onClick={() => onNavigate('alerts')}>
           <div className="kpi-header">
-            <span className="kpi-title">Low Stock Alert</span>
+            <span className="kpi-title">{t('lowStockItems')}</span>
             <div className="kpi-icon-wrapper amber">
               <AlertTriangle size={18} />
             </div>
           </div>
           <div className="kpi-value amber">{lowStockItems.length}</div>
-          <div className="kpi-footer amber-text">Requires reorder action</div>
+          <div className="kpi-footer amber-text">{t('requiresReorderAction')}</div>
         </div>
 
         <div className="kpi-card clickable" onClick={() => onNavigate('alerts')}>
           <div className="kpi-header">
-            <span className="kpi-title">Out of Stock</span>
+            <span className="kpi-title">{t('outOfStockItems')}</span>
             <div className="kpi-icon-wrapper crimson">
               <XCircle size={18} />
             </div>
           </div>
           <div className="kpi-value crimson">{outOfStockItems.length}</div>
-          <div className="kpi-footer crimson-text">Zero quantity available</div>
+          <div className="kpi-footer crimson-text">{t('zeroQuantityAvailable')}</div>
         </div>
 
         <div className="kpi-card col-span-2">
           <div className="kpi-header">
-            <span className="kpi-title">Estimated Stock Value</span>
+            <span className="kpi-title">{t('totalStockValue')}</span>
             <div className="kpi-icon-wrapper emerald">
               <IndianRupee size={18} />
             </div>
           </div>
           <div className="kpi-value emerald">₹ {totalValue.toLocaleString('en-IN')}</div>
-          <div className="kpi-footer">Based on retail unit prices</div>
+          <div className="kpi-footer">{t('basedOnRetailPrices')}</div>
         </div>
       </div>
 
@@ -111,17 +112,17 @@ export const DashboardView = ({ onOpenVoice, onOpenAddProduct, onNavigate }) => 
       <div className="quick-actions-bar">
         <button className="action-btn primary" onClick={onOpenVoice}>
           <Mic size={18} />
-          <span>Voice Stock Update</span>
+          <span>{t('speakStock')}</span>
         </button>
 
         <button className="action-btn secondary" onClick={onOpenAddProduct}>
           <Plus size={18} />
-          <span>Add New Product</span>
+          <span>{t('addNewProduct')}</span>
         </button>
 
         <button className="action-btn tertiary" onClick={() => onNavigate('inventory')}>
           <Package size={18} />
-          <span>View Catalog ({totalProducts})</span>
+          <span>{t('viewAllInventory')} ({totalProducts})</span>
         </button>
       </div>
 
@@ -129,11 +130,11 @@ export const DashboardView = ({ onOpenVoice, onOpenAddProduct, onNavigate }) => 
       <div className="dashboard-section">
         <div className="section-header">
           <div>
-            <h3>Recent Stock Transactions</h3>
+            <h3>{t('recentActivity')}</h3>
             <p>Latest inward and outward updates</p>
           </div>
           <button className="view-all-btn" onClick={() => onNavigate('transactions')}>
-            <span>View Ledger</span>
+            <span>{t('transactions')}</span>
             <ChevronRight size={16} />
           </button>
         </div>
@@ -157,7 +158,7 @@ export const DashboardView = ({ onOpenVoice, onOpenAddProduct, onNavigate }) => 
                   {tx.type === 'IN' ? '+' : '-'}{tx.quantity} {tx.unit}
                 </span>
                 <span className={`source-tag ${tx.source}`}>
-                  {tx.source === 'VOICE' ? '🎤 Voice' : '📝 Manual'}
+                  {tx.source === 'VOICE' ? `🎤 ${t('voice')}` : `📝 ${t('manual')}`}
                 </span>
               </div>
             </div>

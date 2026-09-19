@@ -17,10 +17,12 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { useInventory } from '../context/InventoryContext';
+import { useTranslation } from '../services/i18n';
 import { CustomerDetailModal } from './CustomerDetailModal';
 
 export const KhataView = ({ onOpenVoice }) => {
   const { customers, khataTransactions, addCustomer, addCredit, recordPayment, deleteCustomer, settings } = useInventory();
+  const { t } = useTranslation();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState(null);
@@ -122,19 +124,19 @@ export const KhataView = ({ onOpenVoice }) => {
       {/* Header & Prominent Voice Trigger */}
       <div className="khata-header">
         <div>
-          <h2>Voice-Based Khata Book</h2>
-          <p>Customer Credit Ledger & Udhaar Management</p>
+          <h2>{t('khataBookTitle')}</h2>
+          <p>{t('khataSubtitle')}</p>
         </div>
 
         <div className="header-btns">
           <button className="voice-mic-btn" onClick={onOpenVoice}>
             <Mic size={18} />
-            <span>🎤 Manage Khata</span>
+            <span>🎤 {t('speakStock')}</span>
           </button>
 
           <button className="add-cust-btn" onClick={() => setIsAddCustOpen(true)}>
             <Plus size={18} />
-            <span>Add Customer</span>
+            <span>{t('addCustomer')}</span>
           </button>
         </div>
       </div>
@@ -143,35 +145,35 @@ export const KhataView = ({ onOpenVoice }) => {
       <div className="kpi-grid">
         <div className="kpi-card">
           <div className="kpi-header">
-            <span className="kpi-title">Total Customers</span>
+            <span className="kpi-title">{t('totalCustomers')}</span>
             <div className="kpi-icon indigo">
               <Users size={18} />
             </div>
           </div>
           <div className="kpi-value">{totalCustomers}</div>
-          <div className="kpi-footer">Active customer accounts</div>
+          <div className="kpi-footer">{t('activeCustomerAccounts')}</div>
         </div>
 
         <div className="kpi-card">
           <div className="kpi-header">
-            <span className="kpi-title">Total Outstanding</span>
+            <span className="kpi-title">{t('totalOutstanding')}</span>
             <div className="kpi-icon crimson">
               <IndianRupee size={18} />
             </div>
           </div>
           <div className="kpi-value crimson">₹ {totalOutstanding.toLocaleString('en-IN')}</div>
-          <div className="kpi-footer crimson-text">Pending customer credit</div>
+          <div className="kpi-footer crimson-text">{t('pendingCustomerCredit')}</div>
         </div>
 
         <div className="kpi-card">
           <div className="kpi-header">
-            <span className="kpi-title">Overdue Customers</span>
+            <span className="kpi-title">{t('overdueCustomers')}</span>
             <div className="kpi-icon amber">
               <AlertTriangle size={18} />
             </div>
           </div>
           <div className="kpi-value amber">{overdueCustomers.length}</div>
-          <div className="kpi-footer amber-text">Credit unpaid &gt; {overdueThreshold} days</div>
+          <div className="kpi-footer amber-text">{t('creditUnpaidDays', { days: overdueThreshold })}</div>
         </div>
       </div>
 
@@ -180,7 +182,7 @@ export const KhataView = ({ onOpenVoice }) => {
         <div className="overdue-section">
           <div className="section-title amber">
             <AlertTriangle size={18} />
-            <h3>Overdue Credit Accounts ({overdueCustomers.length})</h3>
+            <h3>{t('overdueCreditAccounts', { count: overdueCustomers.length })}</h3>
           </div>
 
           <div className="overdue-grid">
@@ -190,7 +192,7 @@ export const KhataView = ({ onOpenVoice }) => {
                 <div key={cust.id} className="overdue-card">
                   <div className="cust-row">
                     <span className="cust-name">{cust.name}</span>
-                    <span className="days-badge">{days} Days Overdue</span>
+                    <span className="days-badge">{t('daysOverdueLabel', { days })}</span>
                   </div>
                   <div className="cust-row bottom">
                     <span className="cust-phone"><Phone size={12} /> {cust.phone || 'N/A'}</span>
@@ -209,7 +211,7 @@ export const KhataView = ({ onOpenVoice }) => {
           <Search size={18} className="search-icon" />
           <input
             type="text"
-            placeholder="Search customer by name or phone..."
+            placeholder={t('searchCustomerPlaceholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -218,7 +220,7 @@ export const KhataView = ({ onOpenVoice }) => {
 
       {/* Customers List Grid */}
       <div className="customers-list-section">
-        <h3>Customer Directory ({filteredCustomers.length})</h3>
+        <h3>{t('customerDirectory', { count: filteredCustomers.length })}</h3>
 
         <div className="customers-grid">
           {filteredCustomers.map(cust => (
@@ -226,14 +228,14 @@ export const KhataView = ({ onOpenVoice }) => {
               <div className="card-top">
                 <div className="cust-info">
                   <h4 className="cust-name">{cust.name}</h4>
-                  <span className="cust-phone"><Phone size={12} /> {cust.phone || 'No Phone'}</span>
+                  <span className="cust-phone"><Phone size={12} /> {cust.phone || t('noPhone')}</span>
                 </div>
 
                 <div className="cust-bal-col">
                   <span className={`bal-tag ${cust.currentBalance > 0 ? 'due' : 'settled'}`}>
                     ₹{cust.currentBalance.toLocaleString('en-IN')}
                   </span>
-                  <span className="bal-sub">{cust.currentBalance > 0 ? 'Outstanding' : 'Settled'}</span>
+                  <span className="bal-sub">{cust.currentBalance > 0 ? t('outstanding') : t('settled')}</span>
                 </div>
               </div>
 
@@ -243,7 +245,7 @@ export const KhataView = ({ onOpenVoice }) => {
                   onClick={() => { setCreditModalCustomer(cust); setCreditAmount(''); }}
                 >
                   <Plus size={14} />
-                  <span>+ Udhaar</span>
+                  <span>+ {t('giveCredit')}</span>
                 </button>
 
                 <button 

@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, PhoneCall, Phone, Mail, Mic, BookOpen, HelpCircle } from 'lucide-react';
 import { SUPPORT_PHONE_NUMBER } from '../services/supportService';
+import { useTranslation } from '../services/i18n';
 
 export const SupportPanelModal = ({ 
   isOpen, 
@@ -10,6 +11,8 @@ export const SupportPanelModal = ({
   onVoiceSupport, 
   onOpenFaq 
 }) => {
+  const { t } = useTranslation();
+
   if (!isOpen) return null;
 
   const handleDirectCall = () => {
@@ -31,8 +34,8 @@ export const SupportPanelModal = ({
           <div className="panel-icon">
             <HelpCircle size={26} />
           </div>
-          <h2>Need Help?</h2>
-          <p>How can we assist your shop today?</p>
+          <h2>{t('helpPanelTitle')}</h2>
+          <p>{t('supportSubtitle')}</p>
         </div>
 
         <div className="support-options-grid">
@@ -42,7 +45,7 @@ export const SupportPanelModal = ({
               <PhoneCall size={22} />
             </div>
             <div className="card-info">
-              <span className="card-title">📞 Request a Call</span>
+              <span className="card-title">📞 {t('requestCallback')}</span>
               <span className="card-sub">Our team will call your registered phone</span>
             </div>
           </button>
@@ -53,7 +56,7 @@ export const SupportPanelModal = ({
               <Phone size={22} />
             </div>
             <div className="card-info">
-              <span className="card-title">☎ Call Support</span>
+              <span className="card-title">☎ {t('callSupport')}</span>
               <span className="card-sub">Toll-free: {SUPPORT_PHONE_NUMBER}</span>
             </div>
           </button>

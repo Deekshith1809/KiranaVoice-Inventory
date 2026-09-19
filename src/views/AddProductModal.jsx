@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { X, Check, Package, Plus } from 'lucide-react';
 import { useInventory } from '../context/InventoryContext';
+import { useTranslation } from '../services/i18n';
 
 export const AddProductModal = ({ isOpen, onClose, initialData = null }) => {
   const { addProduct, editProduct, settings } = useInventory();
+  const { t } = useTranslation();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -84,17 +86,17 @@ export const AddProductModal = ({ isOpen, onClose, initialData = null }) => {
           <div className="modal-icon">
             <Package size={22} />
           </div>
-          <h2>{initialData ? 'Edit Product' : 'Add New Product'}</h2>
+          <h2>{initialData ? t('editProductTitle') : t('addNewProduct')}</h2>
           <p>Configure item details and stock parameters</p>
         </div>
 
         <form onSubmit={handleSubmit} className="product-form">
           <div className="form-group">
-            <label>Product Name *</label>
+            <label>{t('productName')} *</label>
             <input
               type="text"
               required
-              placeholder="e.g. Basmati Rice, Sunflower Oil..."
+              placeholder="e.g. Basmati Rice, Sugar..."
               value={formData.name}
               onChange={e => setFormData({ ...formData, name: e.target.value })}
             />
@@ -102,7 +104,7 @@ export const AddProductModal = ({ isOpen, onClose, initialData = null }) => {
 
           <div className="form-row">
             <div className="form-group">
-              <label>Category</label>
+              <label>{t('productCategory')}</label>
               <select
                 value={formData.category}
                 onChange={e => setFormData({ ...formData, category: e.target.value })}
@@ -118,7 +120,7 @@ export const AddProductModal = ({ isOpen, onClose, initialData = null }) => {
             </div>
 
             <div className="form-group">
-              <label>Trade Unit</label>
+              <label>{t('unit')}</label>
               {!showCustomUnit ? (
                 <div className="unit-select-wrapper">
                   <select
@@ -134,18 +136,18 @@ export const AddProductModal = ({ isOpen, onClose, initialData = null }) => {
                     {settings.customUnits.map(unit => (
                       <option key={unit} value={unit}>{unit}</option>
                     ))}
-                    <option value="CUSTOM">+ Add Custom Unit</option>
+                    <option value="CUSTOM">+ Custom Unit</option>
                   </select>
                 </div>
               ) : (
                 <div className="custom-unit-input">
                   <input
                     type="text"
-                    placeholder="Enter unit name..."
+                    placeholder="Enter unit..."
                     value={customUnitInput}
                     onChange={e => setCustomUnitInput(e.target.value)}
                   />
-                  <button type="button" onClick={() => setShowCustomUnit(false)}>Cancel</button>
+                  <button type="button" onClick={() => setShowCustomUnit(false)}>{t('cancel')}</button>
                 </div>
               )}
             </div>

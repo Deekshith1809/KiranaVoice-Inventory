@@ -14,6 +14,7 @@ import {
   ShieldAlert
 } from 'lucide-react';
 import { useInventory } from '../context/InventoryContext';
+import { useTranslation } from '../services/i18n';
 import { SUPPORT_PHONE_NUMBER, FAQ_ITEMS } from '../services/supportService';
 
 export const SupportView = ({ onRequestCallback, onEmailSupport }) => {
@@ -23,6 +24,7 @@ export const SupportView = ({ onRequestCallback, onEmailSupport }) => {
     updateCallbackStatus, 
     userProfile 
   } = useInventory();
+  const { t } = useTranslation();
 
   const [activeSubTab, setActiveSubTab] = useState('MY_REQUESTS'); // MY_REQUESTS | FAQ | ADMIN_QUEUE
   const [faqCategoryFilter, setFaqCategoryFilter] = useState('ALL');
@@ -55,8 +57,8 @@ export const SupportView = ({ onRequestCallback, onEmailSupport }) => {
     <div className="support-container animate-fade-in">
       <div className="view-header">
         <div>
-          <h2>Client Support & Help Center</h2>
-          <p>Request callbacks, track support requests, and browse guides</p>
+          <h2>{t('supportHelpCenter')}</h2>
+          <p>{t('supportSubtitle')}</p>
         </div>
 
         <div className="header-actions">

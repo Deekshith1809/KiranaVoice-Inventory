@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Mic, X, Check, Sparkles, AlertCircle, AlertTriangle, UserCheck, BookOpen, Package } from 'lucide-react';
 import { useInventory } from '../context/InventoryContext';
 import { parseVoiceTranscript, PRESET_VOICE_COMMANDS } from '../services/voiceNLP';
+import { apiService } from '../services/apiService';
 
 export const VoiceAssistantModal = ({ isOpen, onClose }) => {
   const { 
@@ -12,8 +13,9 @@ export const VoiceAssistantModal = ({ isOpen, onClose }) => {
     addCustomer, 
     addCredit, 
     recordPayment, 
-    deleteCustomer, 
-    settings 
+    deleteCustomer,
+    settings,
+    refreshInventory
   } = useInventory();
   
   const [isListening, setIsListening] = useState(false);
@@ -23,6 +25,7 @@ export const VoiceAssistantModal = ({ isOpen, onClose }) => {
   const [errorMessage, setErrorMessage] = useState('');
   const [executionResult, setExecutionResult] = useState(null);
   const [selectedAmbiguousCustomer, setSelectedAmbiguousCustomer] = useState(null);
+  const [isProcessingVoice, setIsProcessingVoice] = useState(false);
 
   const recognitionRef = useRef(null);
 
@@ -46,10 +49,23 @@ export const VoiceAssistantModal = ({ isOpen, onClose }) => {
           currentTranscript += event.results[i][0].transcript;
         }
         setTranscript(currentTranscript);
-        
+
         // Live parsing for both Inventory & Khata
-        const parsed = parseVoiceTranscript(currentTranscript, products, customers);
+        const parsed = parseVoiceTranscript(
+          currentTranscript,
+          products,
+          customers
+        );
         setParsedData(parsed);
+
+        // Send the final browser transcript to FastAPI.
+        const hasFinalResult = Array.from(event.results)
+          .slice(event.resultIndex)
+          .some(result => result.isFinal);
+
+        if (hasFinalResult) {
+          processFinalVoiceCommand(currentTranscript);
+        }
       };
 
       recognitionRef.current.onerror = (event) => {
@@ -117,94 +133,368 @@ export const VoiceAssistantModal = ({ isOpen, onClose }) => {
     }
   };
 
+  // Send the final transcript to FastAPI. The backend is the
+  // authoritative source for inventory intent/product matching.
+  const processFinalVoiceCommand = async (spokenText) => {
+    if (!spokenText || !spokenText.trim()) {
+      return;
+    }
+
+    setIsProcessingVoice(true);
+    setErrorMessage('');
+
+    try {
+      const backendResult = await apiService.processVoiceCommand(
+        spokenText,
+        settings.speechLanguage || 'en',
+        null
+      );
+
+      setParsedData({
+        ...backendResult,
+        category: 'INVENTORY'
+      });
+
+      setStatusMessage(
+        'Command recognized. Verify the details and confirm the operation.'
+      );
+    } catch (err) {
+      console.error('Backend voice processing failed:', err);
+
+      setErrorMessage(
+        err.message ||
+        'Could not process the voice command with the server.'
+      );
+
+      setStatusMessage(
+        'Could not verify the command with the server.'
+      );
+    } finally {
+      setIsProcessingVoice(false);
+    }
+  };
+
   // Confirm extracted voice action
-  const handleConfirmAction = () => {
-    if (!parsedData) return;
+  const handleConfirmAction = async () => {
+    if (!parsedData || isProcessingVoice) return;
 
     let res = null;
-    const { category, intent, productId, product, quantity, unit, customerName, customerId, amount, phone } = parsedData;
-    const targetCustId = selectedAmbiguousCustomer ? selectedAmbiguousCustomer.id : customerId;
-    const targetCustName = selectedAmbiguousCustomer ? selectedAmbiguousCustomer.name : customerName;
+
+    const {
+      category,
+      intent,
+      productId,
+      product,
+      quantity,
+      unit,
+      customerName,
+      customerId,
+      amount,
+      phone
+    } = parsedData;
+
+    const targetCustId = selectedAmbiguousCustomer
+      ? selectedAmbiguousCustomer.id
+      : customerId;
+
+    const targetCustName = selectedAmbiguousCustomer
+      ? selectedAmbiguousCustomer.name
+      : customerName;
 
     // A. INVENTORY ACTIONS
     if (category === 'INVENTORY') {
-      if (intent === 'ADD_STOCK') {
-        res = addStock(productId || product, quantity, unit, 'VOICE');
-        if (res.success) {
-          const msg = `Successfully added ${quantity} ${unit} of ${res.productName}!`;
-          setExecutionResult({ success: true, message: msg });
+      if (
+        intent === 'ADD_STOCK' ||
+        intent === 'REMOVE_STOCK'
+      ) {
+        if (!productId) {
+          const msg =
+            `I could not identify the exact product "${product}". Please try again.`;
+
+          setExecutionResult({
+            success: false,
+            message: msg
+          });
+
           speakAudio(msg);
+          return;
         }
-      } else if (intent === 'REMOVE_STOCK') {
-        res = removeStock(productId || product, quantity, unit, 'VOICE');
-        if (res.success) {
-          const msg = `Successfully removed ${quantity} ${unit} of ${res.productName}!`;
-          setExecutionResult({ success: true, message: msg });
+
+        const numericQuantity = Number(quantity);
+
+        if (
+          !Number.isFinite(numericQuantity) ||
+          numericQuantity <= 0
+        ) {
+          const msg =
+            'Please provide a valid stock quantity.';
+
+          setExecutionResult({
+            success: false,
+            message: msg
+          });
+
           speakAudio(msg);
-        } else {
-          setExecutionResult({ success: false, message: res.message });
-          speakAudio(res.message);
+          return;
+        }
+
+        setIsProcessingVoice(true);
+
+        try {
+          if (intent === 'ADD_STOCK') {
+            res = await addStock(
+              productId,
+              numericQuantity,
+              unit,
+              'VOICE'
+            );
+
+            if (res.success) {
+              const msg =
+                `Successfully added ${numericQuantity} ${res.unit || unit} of ${res.productName}. New stock: ${res.newQty} ${res.unit || unit}.`;
+
+              setExecutionResult({
+                success: true,
+                message: msg
+              });
+
+              setStatusMessage(
+                'Stock updated successfully.'
+              );
+
+              speakAudio(msg);
+            } else {
+              setExecutionResult({
+                success: false,
+                message: res.message
+              });
+
+              speakAudio(
+                res.message ||
+                'Could not add stock.'
+              );
+            }
+          } else {
+            res = await removeStock(
+              productId,
+              numericQuantity,
+              unit,
+              'VOICE'
+            );
+
+            if (res.success) {
+              const msg =
+                `Successfully removed ${numericQuantity} ${res.unit || unit} of ${res.productName}. New stock: ${res.newQty} ${res.unit || unit}.`;
+
+              setExecutionResult({
+                success: true,
+                message: msg
+              });
+
+              setStatusMessage(
+                'Stock updated successfully.'
+              );
+
+              speakAudio(msg);
+            } else {
+              setExecutionResult({
+                success: false,
+                message: res.message
+              });
+
+              speakAudio(
+                res.message ||
+                'Could not remove stock.'
+              );
+            }
+          }
+
+          if (res?.success) {
+            await refreshInventory();
+          }
+        } finally {
+          setIsProcessingVoice(false);
         }
       } else if (intent === 'CHECK_STOCK') {
-        const item = products.find(p => p.name.toLowerCase() === product.toLowerCase());
-        const msg = item ? `${item.name} current stock is ${item.quantity} ${item.unit}.` : `Product ${product} not found.`;
-        setExecutionResult({ success: true, message: msg });
+        const item = products.find(
+          p =>
+            p.name.toLowerCase() ===
+            String(product || '').toLowerCase()
+        );
+
+        const msg = item
+          ? `${item.name} current stock is ${item.quantity} ${item.unit}.`
+          : `Product ${product} not found.`;
+
+        setExecutionResult({
+          success: true,
+          message: msg
+        });
+
         speakAudio(msg);
       } else if (intent === 'LOW_STOCK') {
-        const lowItems = products.filter(p => p.quantity <= p.reorderLevel);
-        const msg = lowItems.length > 0 
-          ? `${lowItems.length} products low in stock: ${lowItems.map(p => p.name).join(', ')}.`
-          : 'All products are currently well stocked!';
-        setExecutionResult({ success: true, message: msg });
+        const lowItems = products.filter(
+          p =>
+            p.quantity <= p.reorderLevel
+        );
+
+        const msg =
+          lowItems.length > 0
+            ? `${lowItems.length} products low in stock: ${lowItems.map(p => p.name).join(', ')}.`
+            : 'All products are currently well stocked!';
+
+        setExecutionResult({
+          success: true,
+          message: msg
+        });
+
+        speakAudio(msg);
+      } else if (intent === 'REORDER') {
+        const lowItems = products.filter(
+          p =>
+            p.quantity <= p.reorderLevel
+        );
+
+        const msg =
+          lowItems.length > 0
+            ? `Reorder suggested for: ${lowItems.map(p => p.name).join(', ')}.`
+            : 'No products currently need reordering.';
+
+        setExecutionResult({
+          success: true,
+          message: msg
+        });
+
         speakAudio(msg);
       }
-    } 
+    }
+
     // B. KHATA BOOK ACTIONS
     else if (category === 'KHATA') {
       if (intent === 'ADD_CUSTOMER') {
-        const newC = addCustomer({ name: customerName, phone });
-        const msg = `Added new customer ${newC.name} to Khata book.`;
-        setExecutionResult({ success: true, message: msg });
+        const newC = addCustomer({
+          name: customerName,
+          phone
+        });
+
+        const msg =
+          `Added new customer ${newC.name} to Khata book.`;
+
+        setExecutionResult({
+          success: true,
+          message: msg
+        });
+
         speakAudio(msg);
       } else if (intent === 'CREDIT_GIVEN') {
-        res = addCredit(targetCustId || targetCustName, amount, 'Voice credit given', 'VOICE');
+        res = addCredit(
+          targetCustId || targetCustName,
+          amount,
+          'Voice credit given',
+          'VOICE'
+        );
+
         if (res.success) {
-          const msg = `Recorded ₹${amount} credit for ${res.customerName}. New Balance: ₹${res.newBalance.toLocaleString('en-IN')}`;
-          setExecutionResult({ success: true, message: msg });
+          const msg =
+            `Recorded ₹${amount} credit for ${res.customerName}. New Balance: ₹${res.newBalance.toLocaleString('en-IN')}`;
+
+          setExecutionResult({
+            success: true,
+            message: msg
+          });
+
           speakAudio(msg);
         } else {
-          setExecutionResult({ success: false, message: res.message });
+          setExecutionResult({
+            success: false,
+            message: res.message
+          });
+
+          speakAudio(
+            res.message ||
+            'Could not record credit.'
+          );
         }
       } else if (intent === 'PAYMENT_RECEIVED') {
-        res = recordPayment(targetCustId || targetCustName, amount, 'Voice payment received', 'VOICE', true);
+        res = recordPayment(
+          targetCustId || targetCustName,
+          amount,
+          'Voice payment received',
+          'VOICE',
+          true
+        );
+
         if (res.success) {
-          const msg = `Recorded ₹${amount} payment from ${res.customerName}. New Balance: ₹${res.newBalance.toLocaleString('en-IN')}`;
-          setExecutionResult({ success: true, message: msg });
+          const msg =
+            `Recorded ₹${amount} payment from ${res.customerName}. New Balance: ₹${res.newBalance.toLocaleString('en-IN')}`;
+
+          setExecutionResult({
+            success: true,
+            message: msg
+          });
+
           speakAudio(msg);
         } else {
-          setExecutionResult({ success: false, message: res.message });
+          setExecutionResult({
+            success: false,
+            message: res.message
+          });
+
+          speakAudio(
+            res.message ||
+            'Could not record payment.'
+          );
         }
       } else if (intent === 'CHECK_CUSTOMER_BALANCE') {
-        const cust = customers.find(c => c.name.toLowerCase() === targetCustName.toLowerCase());
-        const msg = cust 
-          ? `${cust.name} ka outstanding balance ₹${cust.currentBalance.toLocaleString('en-IN')} hai.` 
+        const cust = customers.find(
+          c =>
+            c.name.toLowerCase() ===
+            String(targetCustName || '').toLowerCase()
+        );
+
+        const msg = cust
+          ? `${cust.name} ka outstanding balance ₹${cust.currentBalance.toLocaleString('en-IN')} hai.`
           : `Customer ${targetCustName} not found.`;
-        setExecutionResult({ success: true, message: msg });
+
+        setExecutionResult({
+          success: true,
+          message: msg
+        });
+
         speakAudio(msg);
       } else if (intent === 'TOTAL_OUTSTANDING') {
-        const total = customers.reduce((acc, c) => acc + c.currentBalance, 0);
-        const msg = `Total outstanding balance across all customers is ₹${total.toLocaleString('en-IN')}.`;
-        setExecutionResult({ success: true, message: msg });
+        const total = customers.reduce(
+          (acc, c) =>
+            acc + Number(c.currentBalance || 0),
+          0
+        );
+
+        const msg =
+          `Total outstanding balance across all customers is ₹${total.toLocaleString('en-IN')}.`;
+
+        setExecutionResult({
+          success: true,
+          message: msg
+        });
+
         speakAudio(msg);
       } else if (intent === 'DELETE_CUSTOMER') {
-        res = deleteCustomer(targetCustId || targetCustName);
-        const msg = `Deleted customer record for ${targetCustName}.`;
-        setExecutionResult({ success: true, message: msg });
+        res = deleteCustomer(
+          targetCustId || targetCustName
+        );
+
+        const msg =
+          `Deleted customer record for ${targetCustName}.`;
+
+        setExecutionResult({
+          success: true,
+          message: msg
+        });
+
         speakAudio(msg);
       }
     }
   };
-
   return (
     <div className="voice-modal-overlay animate-fade-in">
       <div className="voice-modal-content animate-slide-up">
@@ -352,9 +642,16 @@ export const VoiceAssistantModal = ({ isOpen, onClose }) => {
                 <button 
                   className={`confirm-btn ${parsedData.intent === 'DELETE_CUSTOMER' ? 'danger' : ''}`} 
                   onClick={handleConfirmAction}
+                  disabled={isProcessingVoice}
                 >
                   <Check size={18} />
-                  <span>{parsedData.intent === 'DELETE_CUSTOMER' ? 'Confirm Delete Customer' : 'Confirm Operation'}</span>
+                  <span>
+                    {isProcessingVoice
+                      ? 'Processing...'
+                      : parsedData.intent === 'DELETE_CUSTOMER'
+                        ? 'Confirm Delete Customer'
+                        : 'Confirm Operation'}
+                  </span>
                 </button>
                 <button className="cancel-btn" onClick={() => setParsedData(null)}>
                   <span>Cancel</span>
@@ -688,6 +985,11 @@ export const VoiceAssistantModal = ({ isOpen, onClose }) => {
 
         .confirm-btn.danger {
           background: #ef4444;
+        }
+
+        .confirm-btn:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
         }
 
         .cancel-btn {

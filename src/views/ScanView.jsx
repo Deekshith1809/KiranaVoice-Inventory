@@ -15,6 +15,7 @@ import {
   X
 } from 'lucide-react';
 import { useInventory } from '../context/InventoryContext';
+import { useTranslation } from '../services/i18n';
 import { 
   preprocessImageCanvas, 
   parseInvoiceOCR, 
@@ -24,6 +25,7 @@ import {
 
 export const ScanView = ({ onNavigate }) => {
   const { products, customers, addStock, addCredit, recordPayment } = useInventory();
+  const { t } = useTranslation();
 
   const [scanMode, setScanMode] = useState('INVOICE_OCR'); // INVOICE_OCR | HANDWRITTEN_KHATA | BARCODE_QR
   const [imagePreview, setImagePreview] = useState(null);
@@ -160,8 +162,8 @@ export const ScanView = ({ onNavigate }) => {
     <div className="scan-container animate-fade-in">
       <div className="view-header">
         <div>
-          <h2>Camera & Document OCR Scanner</h2>
-          <p>Process supplier invoices, handwritten pages, and barcodes</p>
+          <h2>{t('scanTitle')}</h2>
+          <p>{t('scanSubtitle')}</p>
         </div>
       </div>
 

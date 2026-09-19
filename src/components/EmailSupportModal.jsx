@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { X, Mail, Check, AlertCircle } from 'lucide-react';
 import { useInventory } from '../context/InventoryContext';
 import { SUPPORT_CATEGORIES } from '../services/supportService';
+import { useTranslation } from '../services/i18n';
 
 export const EmailSupportModal = ({ isOpen, onClose }) => {
   const { userProfile, submitSupportTicket } = useInventory();
+  const { t } = useTranslation();
 
   const [category, setCategory] = useState(SUPPORT_CATEGORIES[0]);
   const [subject, setSubject] = useState(`${SUPPORT_CATEGORIES[0]} - Support Request`);
@@ -43,7 +45,7 @@ export const EmailSupportModal = ({ isOpen, onClose }) => {
               <div className="modal-icon indigo">
                 <Mail size={24} />
               </div>
-              <h2>Email Support Request</h2>
+              <h2>{t('emailSupport')}</h2>
               <p>Submit a formal ticket to our technical support team</p>
             </div>
 

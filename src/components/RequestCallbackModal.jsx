@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { X, PhoneCall, Check, Mic, Edit, Phone, AlertCircle } from 'lucide-react';
 import { useInventory } from '../context/InventoryContext';
 import { SUPPORT_CATEGORIES } from '../services/supportService';
+import { useTranslation } from '../services/i18n';
 
 export const RequestCallbackModal = ({ isOpen, onClose, initialCategory = null }) => {
   const { userProfile, submitCallbackRequest, updateUserProfile } = useInventory();
+  const { t } = useTranslation();
 
   const [phone, setPhone] = useState(userProfile.phone || '+91 9876543210');
   const [isEditingPhone, setIsEditingPhone] = useState(false);
@@ -92,7 +94,7 @@ export const RequestCallbackModal = ({ isOpen, onClose, initialCategory = null }
               <div className="modal-icon crimson">
                 <PhoneCall size={24} />
               </div>
-              <h2>Request a Call</h2>
+              <h2>{t('requestCallback')}</h2>
               <p>Our support agent will call your phone number</p>
             </div>
 

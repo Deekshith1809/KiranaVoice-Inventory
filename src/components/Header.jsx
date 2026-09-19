@@ -1,9 +1,13 @@
 import React, { useEffect } from 'react';
-import { Mic, Languages, Sparkles, Store, Sun, Moon } from 'lucide-react';
+import { Mic, Languages, Sparkles, Store, Sun, Moon, LogOut } from 'lucide-react';
 import { useInventory } from '../context/InventoryContext';
+import { useAuth } from '../context/AuthContext';
+import { useTranslation } from '../services/i18n';
 
-export const Header = ({ onOpenVoice, activeTab }) => {
-  const { settings, setSettings, products } = useInventory();
+export const Header = ({ onOpenVoice, activeTab, onNavigate }) => {
+  const { settings, setSettings, setAppLanguage } = useInventory();
+  const { user, logout, isAuthenticated } = useAuth();
+  const { t } = useTranslation();
   
   const currentTheme = settings.theme || 'dark';
 
@@ -24,9 +28,10 @@ export const Header = ({ onOpenVoice, activeTab }) => {
     let speechLang = 'en-IN';
     if (lang === 'te') speechLang = 'te-IN';
     if (lang === 'hi') speechLang = 'hi-IN';
+    
+    setAppLanguage(lang);
     setSettings(prev => ({
       ...prev,
-      appLanguage: lang,
       speechLanguage: speechLang
     }));
   };
@@ -38,8 +43,8 @@ export const Header = ({ onOpenVoice, activeTab }) => {
           <Store size={22} className="store-icon" />
         </div>
         <div>
-          <h1 className="store-title">KiranaVoice Inventory</h1>
-          <p className="store-subtitle">Voice-First Shop Management</p>
+          <h1 className="store-title">{user?.shopName || 'KiranaVoice Inventory'}</h1>
+          <p className="store-subtitle">{user?.fullName ? `${t('owner')}: ${user.fullName}` : t('dashboardSubtitle')}</p>
         </div>
       </div>
 
@@ -55,7 +60,7 @@ export const Header = ({ onOpenVoice, activeTab }) => {
           ) : (
             <Moon size={18} className="theme-icon moon" />
           )}
-          <span className="theme-label">{currentTheme === 'dark' ? 'Light' : 'Dark'}</span>
+          <span className="theme-label">{currentTheme === 'dark' ? t('lightMode') : t('darkMode')}</span>
         </button>
 
         {/* Quick Language Switcher */}
@@ -84,15 +89,40 @@ export const Header = ({ onOpenVoice, activeTab }) => {
           </button>
         </div>
 
+        {/* User Account / Profile Badge */}
+        {isAuthenticated && (
+          <button 
+            className="user-profile-badge"
+            onClick={() => onNavigate && onNavigate('profile')}
+            title="User Profile & Settings"
+          >
+            <div className="avatar-circle">
+              <span>{user?.fullName ? user.fullName.charAt(0).toUpperCase() : 'U'}</span>
+            </div>
+            <span className="user-name-text">{user?.fullName}</span>
+          </button>
+        )}
+
+        {/* Logout Button */}
+        {isAuthenticated && (
+          <button 
+            className="icon-header-btn logout"
+            onClick={logout}
+            title={t('logout')}
+          >
+            <LogOut size={16} />
+          </button>
+        )}
+
         {/* Primary Mic Trigger Button */}
         <button 
           className="header-mic-btn"
           onClick={onOpenVoice}
-          title="Speak command to manage stock"
+          title={t('speakStock')}
         >
           <div className="mic-pulse"></div>
           <Mic size={20} className="mic-icon" />
-          <span className="mic-text">Speak Stock</span>
+          <span className="mic-text">{t('speakStock')}</span>
           <Sparkles size={14} className="sparkle-icon" />
         </button>
       </div>
@@ -144,7 +174,7 @@ export const Header = ({ onOpenVoice, activeTab }) => {
         .header-actions {
           display: flex;
           align-items: center;
-          gap: 0.75rem;
+          gap: 0.65rem;
         }
 
         .theme-toggle-btn {
@@ -158,17 +188,6 @@ export const Header = ({ onOpenVoice, activeTab }) => {
           font-size: 0.75rem;
           font-weight: 600;
           border: 1px solid rgba(255, 255, 255, 0.1);
-          transition: all 0.2s;
-        }
-
-        [data-theme='light'] .theme-toggle-btn {
-          background: rgba(241, 245, 249, 0.9);
-          color: #6366f1;
-          border-color: rgba(0, 0, 0, 0.1);
-        }
-
-        .theme-toggle-btn:hover {
-          transform: scale(1.05);
         }
 
         .lang-switcher {
@@ -181,10 +200,7 @@ export const Header = ({ onOpenVoice, activeTab }) => {
           border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .lang-icon {
-          color: #94a3b8;
-          margin-right: 0.25rem;
-        }
+        .lang-icon { color: #94a3b8; margin-right: 0.25rem; }
 
         .lang-btn {
           background: transparent;
@@ -193,13 +209,51 @@ export const Header = ({ onOpenVoice, activeTab }) => {
           border-radius: 9999px;
           font-size: 0.75rem;
           font-weight: 600;
-          transition: all 0.2s;
         }
 
         .lang-btn.active {
           background: #6366f1;
           color: white;
-          box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+        }
+
+        .user-profile-badge {
+          display: flex;
+          align-items: center;
+          gap: 0.4rem;
+          background: rgba(30, 41, 59, 0.8);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          padding: 0.25rem 0.65rem 0.25rem 0.35rem;
+          border-radius: 9999px;
+          color: #f8fafc;
+        }
+
+        .avatar-circle {
+          width: 26px;
+          height: 26px;
+          border-radius: 9999px;
+          background: #6366f1;
+          color: white;
+          font-size: 0.75rem;
+          font-weight: 700;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .user-name-text {
+          font-size: 0.8rem;
+          font-weight: 600;
+        }
+
+        .icon-header-btn {
+          background: rgba(239, 68, 68, 0.15);
+          color: #f87171;
+          width: 34px;
+          height: 34px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
 
         .header-mic-btn {
@@ -213,29 +267,13 @@ export const Header = ({ onOpenVoice, activeTab }) => {
           border-radius: 9999px;
           font-weight: 600;
           font-size: 0.875rem;
-          box-shadow: 0 4px 15px rgba(239, 68, 68, 0.35);
-          transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .header-mic-btn:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
-        }
-
-        .mic-pulse {
-          position: absolute;
-          inset: -2px;
-          border-radius: 9999px;
-          border: 2px solid #ef4444;
-          animation: pulseGlow 2s infinite;
-          opacity: 0.6;
         }
 
         @media (max-width: 640px) {
+          .user-name-text { display: none; }
           .store-subtitle { display: none; }
           .mic-text { display: none; }
           .theme-label { display: none; }
-          .header-mic-btn { padding: 0.6rem 0.8rem; }
         }
       `}</style>
     </header>

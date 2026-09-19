@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Mic, Package, BookOpen, Camera, ArrowRight, Check, Sparkles, X } from 'lucide-react';
 import { useInventory } from '../context/InventoryContext';
+import { useTranslation } from '../services/i18n';
 
 export const OnboardingWizard = () => {
   const { userProfile, completeOnboarding } = useInventory();
+  const { t } = useTranslation();
   const [currentStep, setCurrentStep] = useState(0);
 
   if (userProfile.onboardingCompleted) return null;
@@ -12,7 +14,7 @@ export const OnboardingWizard = () => {
     {
       icon: Sparkles,
       color: 'indigo',
-      title: 'Welcome to Your Business Assistant',
+      title: t('onboardingWelcome'),
       subtitle: 'Manage your entire shop using natural speech, inventory tracking, customer credit, and invoice OCR.',
       featureTitle: 'Voice-First Shop Management',
       featureDesc: 'Built for fast Kirana and retail shops. Speak in English, Telugu, or Hindi with minimal typing.'
@@ -20,7 +22,7 @@ export const OnboardingWizard = () => {
     {
       icon: Mic,
       color: 'crimson',
-      title: '🎤 Voice Assistant',
+      title: `🎤 ${t('onboardingStep1')}`,
       subtitle: 'Step 1 of 4',
       featureTitle: 'Speak Naturally to Manage Stock',
       featureDesc: 'Tap the mic button and say "Add 20 bags of rice" or "Ramesh ko 500 udhaar diya". Verified intent confirmation cards keep your entries accurate.'
@@ -28,7 +30,7 @@ export const OnboardingWizard = () => {
     {
       icon: Package,
       color: 'cyan',
-      title: '📦 Inventory Catalog',
+      title: `📦 ${t('inventoryCatalog')}`,
       subtitle: 'Step 2 of 4',
       featureTitle: 'Track Stock & Receive Reorder Alerts',
       featureDesc: 'Maintain exact product counts across Bags, Kg, Cartons, Litres, and Quintals. Get proactive notifications when stock runs low.'
@@ -36,7 +38,7 @@ export const OnboardingWizard = () => {
     {
       icon: BookOpen,
       color: 'amber',
-      title: '📒 Khata Book',
+      title: `📒 ${t('onboardingStep3')}`,
       subtitle: 'Step 3 of 4',
       featureTitle: 'Track Customer Udhaar & Payments',
       featureDesc: 'Record customer credit, view overdue accounts, and generate printable PDF statements for your customers.'
@@ -44,7 +46,7 @@ export const OnboardingWizard = () => {
     {
       icon: Camera,
       color: 'emerald',
-      title: '📷 Scan Document',
+      title: `📷 ${t('scanTitle')}`,
       subtitle: 'Step 4 of 4',
       featureTitle: 'Scan Supplier Invoices & Barcodes',
       featureDesc: 'Capture supplier invoices with automatic line-item parsing, invoice total cross-checks, and stock delta updates.'

@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { AlertTriangle, XCircle, ShoppingBag, Plus, Check, RefreshCw } from 'lucide-react';
 import { useInventory } from '../context/InventoryContext';
+import { useTranslation } from '../services/i18n';
 
 export const AlertsView = ({ onOpenVoice }) => {
   const { products, addStock } = useInventory();
+  const { t } = useTranslation();
 
   const [reorderModalItem, setReorderModalItem] = useState(null);
   const [reorderQty, setReorderQty] = useState('20');
@@ -30,8 +32,8 @@ export const AlertsView = ({ onOpenVoice }) => {
     <div className="alerts-container animate-fade-in">
       <div className="view-header">
         <div>
-          <h2>Stock Alerts & Reorder Center</h2>
-          <p>Proactive alerts for items below minimum threshold levels</p>
+          <h2>{t('alertsTitle')}</h2>
+          <p>{t('alertsSubtitle')}</p>
         </div>
       </div>
 
@@ -50,7 +52,7 @@ export const AlertsView = ({ onOpenVoice }) => {
           </div>
           <div>
             <span className="box-count">{outOfStockItems.length}</span>
-            <span className="box-label">Out of Stock Items</span>
+            <span className="box-label">{t('outOfStockItems')}</span>
           </div>
         </div>
 
@@ -60,7 +62,7 @@ export const AlertsView = ({ onOpenVoice }) => {
           </div>
           <div>
             <span className="box-count">{lowStockItems.length}</span>
-            <span className="box-label">Low Stock Items</span>
+            <span className="box-label">{t('lowStockItems')}</span>
           </div>
         </div>
 

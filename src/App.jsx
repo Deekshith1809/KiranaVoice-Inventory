@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { InventoryProvider } from './context/InventoryContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { Header } from './components/Header';
 import { Navigation } from './components/Navigation';
 import { VoiceAssistantModal } from './components/VoiceAssistantModal';
@@ -17,8 +18,29 @@ import { SupportView } from './views/SupportView';
 import { TransactionsView } from './views/TransactionsView';
 import { AlertsView } from './views/AlertsView';
 import { SettingsView } from './views/SettingsView';
+import { ProfileView } from './views/ProfileView';
 
-function AppContent() {
+// Auth Views
+import { LoginView } from './views/LoginView';
+import { RegisterView } from './views/RegisterView';
+import { ForgotPasswordView } from './views/ForgotPasswordView';
+import { ResetPasswordView } from './views/ResetPasswordView';
+
+function AppShell() {
+  const { isAuthenticated, authLoading } = useAuth();
+
+  // Auth sub-view state for public routing
+  const [authView, setAuthView] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('reset_token')) return 'reset-password';
+    return 'login';
+  });
+  
+  const [resetToken, setResetToken] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('reset_token') || '';
+  });
+
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isVoiceOpen, setIsVoiceOpen] = useState(false);
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
@@ -30,6 +52,60 @@ function AppContent() {
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const [selectedCallbackCategory, setSelectedCallbackCategory] = useState(null);
 
+  if (authLoading) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: '#0f172a',
+        color: '#f8fafc',
+        fontFamily: 'sans-serif'
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{
+            width: '40px',
+            height: '40px',
+            border: '4px solid rgba(99, 102, 241, 0.2)',
+            borderTopColor: '#6366f1',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+            margin: '0 auto 1rem auto'
+          }} />
+          <p>Initializing KiranaVoice Inventory...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Render Public Auth Views if Not Authenticated
+  if (!isAuthenticated) {
+    if (authView === 'register') {
+      return <RegisterView onNavigateToLogin={() => setAuthView('login')} />;
+    }
+    if (authView === 'forgot-password') {
+      return <ForgotPasswordView onNavigateToLogin={() => setAuthView('login')} />;
+    }
+    if (authView === 'reset-password') {
+      return (
+        <ResetPasswordView 
+          resetToken={resetToken} 
+          onNavigateToLogin={() => {
+            setAuthView('login');
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }} 
+        />
+      );
+    }
+    return (
+      <LoginView 
+        onNavigateToRegister={() => setAuthView('register')}
+        onNavigateToForgot={() => setAuthView('forgot-password')}
+      />
+    );
+  }
+
   const handleOpenEditProduct = (product) => {
     setEditingProduct(product);
     setIsAddProductOpen(true);
@@ -40,16 +116,12 @@ function AppContent() {
     setEditingProduct(null);
   };
 
-  const handleOpenCallbackCategory = (categoryName) => {
-    setSelectedCallbackCategory(categoryName);
-    setIsCallbackModalOpen(true);
-  };
-
   return (
     <div className="app-shell">
       <Header 
         onOpenVoice={() => setIsVoiceOpen(true)} 
         activeTab={activeTab} 
+        onNavigate={(tab) => setActiveTab(tab)}
       />
 
       <Navigation 
@@ -101,6 +173,10 @@ function AppContent() {
           <AlertsView 
             onOpenVoice={() => setIsVoiceOpen(true)}
           />
+        )}
+
+        {activeTab === 'profile' && (
+          <ProfileView />
         )}
 
         {activeTab === 'settings' && (
@@ -164,6 +240,11 @@ function AppContent() {
           padding-bottom: 80px;
         }
 
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+
         @media (min-width: 768px) {
           .app-main-content {
             padding-bottom: 20px;
@@ -176,8 +257,10 @@ function AppContent() {
 
 export default function App() {
   return (
-    <InventoryProvider>
-      <AppContent />
-    </InventoryProvider>
+    <AuthProvider>
+      <InventoryProvider>
+        <AppShell />
+      </InventoryProvider>
+    </AuthProvider>
   );
 }

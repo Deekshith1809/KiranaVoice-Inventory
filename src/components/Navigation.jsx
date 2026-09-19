@@ -1,9 +1,11 @@
 import React from 'react';
-import { LayoutDashboard, Package, BookOpen, Camera, HelpCircle, History, Bell, Settings } from 'lucide-react';
+import { LayoutDashboard, Package, BookOpen, Camera, HelpCircle, History, Bell, Settings, User } from 'lucide-react';
 import { useInventory } from '../context/InventoryContext';
+import { useTranslation } from '../services/i18n';
 
 export const Navigation = ({ activeTab, setActiveTab }) => {
   const { products, customers, callbackRequests, settings } = useInventory();
+  const { t } = useTranslation();
   
   const lowStockCount = products.filter(p => p.quantity <= p.reorderLevel).length;
   
@@ -16,14 +18,15 @@ export const Navigation = ({ activeTab, setActiveTab }) => {
   const pendingSupportCount = callbackRequests.filter(r => r.status === 'Pending').length;
 
   const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'inventory', label: 'Inventory', icon: Package },
-    { id: 'khata', label: 'Khata Book', icon: BookOpen, badge: overdueCount },
-    { id: 'scan', label: 'Scan', icon: Camera },
-    { id: 'support', label: 'Support', icon: HelpCircle, badge: pendingSupportCount },
-    { id: 'transactions', label: 'Ledger', icon: History },
-    { id: 'alerts', label: 'Alerts', icon: Bell, badge: lowStockCount },
-    { id: 'settings', label: 'Settings', icon: Settings }
+    { id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard },
+    { id: 'inventory', label: t('inventory'), icon: Package },
+    { id: 'khata', label: t('khataBook'), icon: BookOpen, badge: overdueCount },
+    { id: 'scan', label: t('scan'), icon: Camera },
+    { id: 'support', label: t('support'), icon: HelpCircle, badge: pendingSupportCount },
+    { id: 'transactions', label: t('transactions'), icon: History },
+    { id: 'alerts', label: t('alerts'), icon: Bell, badge: lowStockCount },
+    { id: 'profile', label: t('profile'), icon: User },
+    { id: 'settings', label: t('settings'), icon: Settings }
   ];
 
   return (

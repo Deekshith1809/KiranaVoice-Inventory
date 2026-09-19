@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { History, ArrowDownLeft, ArrowUpRight, Filter, Search, Mic, FileText } from 'lucide-react';
 import { useInventory } from '../context/InventoryContext';
+import { useTranslation } from '../services/i18n';
 
 export const TransactionsView = () => {
   const { transactions } = useInventory();
+  const { t } = useTranslation();
 
   const [typeFilter, setTypeFilter] = useState('ALL');
   const [sourceFilter, setSourceFilter] = useState('ALL');
@@ -20,8 +22,8 @@ export const TransactionsView = () => {
     <div className="transactions-container animate-fade-in">
       <div className="view-header">
         <div>
-          <h2>Transaction History Ledger</h2>
-          <p>Complete audit log of all stock movements</p>
+          <h2>{t('ledgerTitle')}</h2>
+          <p>{t('ledgerSubtitle')}</p>
         </div>
       </div>
 
@@ -31,7 +33,7 @@ export const TransactionsView = () => {
           <Search size={16} className="search-icon" />
           <input
             type="text"
-            placeholder="Search by product name..."
+            placeholder={t('searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -41,7 +43,7 @@ export const TransactionsView = () => {
           <div className="filter-select">
             <Filter size={14} />
             <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)}>
-              <option value="ALL">All Operations</option>
+              <option value="ALL">{t('all')}</option>
               <option value="IN">Inward (IN)</option>
               <option value="OUT">Outward (OUT)</option>
             </select>
@@ -49,9 +51,9 @@ export const TransactionsView = () => {
 
           <div className="filter-select">
             <select value={sourceFilter} onChange={e => setSourceFilter(e.target.value)}>
-              <option value="ALL">All Sources</option>
-              <option value="VOICE">🎤 Voice Input</option>
-              <option value="MANUAL">📝 Manual Input</option>
+              <option value="ALL">{t('all')}</option>
+              <option value="VOICE">🎤 {t('voice')}</option>
+              <option value="MANUAL">📝 {t('manual')}</option>
             </select>
           </div>
         </div>
@@ -62,11 +64,11 @@ export const TransactionsView = () => {
         <table className="tx-table">
           <thead>
             <tr>
-              <th>Date & Time</th>
-              <th>Product</th>
-              <th>Operation</th>
-              <th>Quantity & Unit</th>
-              <th>Input Source</th>
+              <th>{t('date')}</th>
+              <th>{t('productName')}</th>
+              <th>{t('type')}</th>
+              <th>{t('quantity')}</th>
+              <th>{t('source')}</th>
             </tr>
           </thead>
           <tbody>

@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Settings, Globe, Mic, Plus, Volume2, RotateCcw, Check, Trash2 } from 'lucide-react';
 import { useInventory } from '../context/InventoryContext';
+import { useTranslation } from '../services/i18n';
 
 export const SettingsView = () => {
   const { settings, setSettings, addCustomUnit, resetToDemoData } = useInventory();
+  const { t } = useTranslation();
 
   const [newUnitText, setNewUnitText] = useState('');
   const [resetSuccess, setResetSuccess] = useState(false);
@@ -27,8 +29,8 @@ export const SettingsView = () => {
     <div className="settings-container animate-fade-in">
       <div className="view-header">
         <div>
-          <h2>System Settings & Preferences</h2>
-          <p>Language selection, custom trade units, and audio controls</p>
+          <h2>{t('settingsTitle')}</h2>
+          <p>{t('settingsSubtitle')}</p>
         </div>
       </div>
 
@@ -44,7 +46,7 @@ export const SettingsView = () => {
         <div className="card-header">
           <Globe size={20} className="icon indigo" />
           <div>
-            <h3>Application Language</h3>
+            <h3>{t('languagePreference')}</h3>
             <p>Select interface display language</p>
           </div>
         </div>
